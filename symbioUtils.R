@@ -1,65 +1,39 @@
 
-#' Not %in% Function
-#'
-#' This function is equivalent to `not in` function
-#' This can be used to check absense of variable in a vector.
-#' @export
-#' @example 'a' %!in% c('b', 'c', 'd')
-#' @return Logical output (TRUE or FALSE)
+# Not %in% Function
+#
+# This function is equivalent to `not in` function
+# This can be used to check absense of variable in a vector.
 `%!in%` = Negate(`%in%`)
 
-#' Standard error with NA removal
-#'
-#' Base R do not have standard error with NA removal.
-#' This function takes in a vector and calculate relative growth difference
-#' @export
-#' @param x is a vector containing integer
-#' @return Standard error calculated after removing NAs
-#' @example se(c(1, 4, 2, 5, 3, NA, 1, 6))
+# Standard error with NA removal
+#
+# Base R do not have standard error with NA removal.
+# This function takes in a vector and calculate relative growth difference
 se <- function(x) sd(x, na.rm=T)/sqrt(length(x))
 
-#' Regus 2015 equation for scaled relative growth difference
-#'
-#' This function takes in sample biomass and control biomass.
-#' Then estimate the difference difference and scale by control biomass.
-#' @export
-#' @param x.rg is sample biomass
-#' @param c.rg is control biomass
-#' @return Scaled growth difference or scaled relative growth
-#' @example calculate.RGD(c(5, 3, 4), 4)
+# Regus 2015 equation for scaled relative growth difference
+#
+# This function takes in sample biomass and control biomass.
+# Then estimate the difference difference and scale by control biomass.
 calculate.RGD <-  function(x.rg, c.rg){
   return (((x.rg - c.rg) / c.rg ) * 100)
 }
 
-#' Wendlandt 2019 for RG ratio
-#'
-#' This function takes in sample biomass and control biomass
-#' It returns the ratio of sample and control biomass
-#' @export
-#' @param x.rg is sample biomass
-#' @param c.rg is control biomass
-#' @return Sample to control biomass proportion
-#' @example calculate.RG(c(5,3,4), 4)
+# Wendlandt 2019 for RG ratio
+#
+# This function takes in sample biomass and control biomass
+# It returns the ratio of sample and control biomass
 calculate.RG <-  function(x.rg, c.rg){
   return (x.rg / c.rg)
 }
 
-#' Canonical Function For Generating Barplot with SE and datapoints
-#'
-#' For data analysis in symbiosis experiment, we often need to break the dataset in
-#' diifferent variables to visualize it. This function gives a handy way to break down
-#' the dataset in one or two factors and visualize the response variable. It aggregate
-#' the dataset by given variables, calculate mean and standard error, and shows a handy
-#' barplot with standard error and individual data points.
-#'
-#' @export
-#' @param dataset dataframe containing master harvest dataset
-#' @param response response variable for y axis from the dataset
-#' @param factor1 independant variable for y axis from the dataset
-#' @param factor another independant variable from the dataset.
-#' @return a barplot showing response variable in y and independant variables in the x axis
-#' @example symbio.plot(harvest, 'relativeGrowth', 'host')
-#' @example symbio.plot(harvest, 'relativeGrowth', 'host', 'treatment')
+# Canonical Function For Generating Barplot with SE and datapoints
+#
+# For data analysis in symbiosis experiment, we often need to break the dataset in
+# diifferent variables to visualize it. This function gives a handy way to break down
+# the dataset in one or two factors and visualize the response variable. It aggregate
+# the dataset by given variables, calculate mean and standard error, and shows a handy
+# barplot with standard error and individual data points.
 symbio.plot <- function(dataset, response, factor1, factor2=NULL){
   # Defining necessary function inside of this R function
   se <- function(x) sd(x, na.rm=T)/sqrt(length(x))
@@ -103,13 +77,9 @@ symbio.plot <- function(dataset, response, factor1, factor2=NULL){
 }
 
 
-#' Function to generate diagnostic plot of lm model and summary
-#'
-#' This function takes in a linear model (lm) object and visualize the diagnostics in pretty ggplot
-#' @export
-#' @param model.lm lm object
-#' @return a plot showing four diagnostics and model summary
-#' @example model.diagnostics(lm(relativeGrowth~host+treatment, data=harvest))
+# Function to generate diagnostic plot of lm model and summary
+#
+# This function takes in a linear model (lm) object and visualize the diagnostics in pretty ggplot
 model.diagnostics <-  function(model.lm) {
   requires(ggplot2)
   diagnostics <- ggplot::autoplot(model.lm) + theme_light()
@@ -118,17 +88,9 @@ model.diagnostics <-  function(model.lm) {
 }
 
 
-#' Interaction plots between two variables on response
-#'
-#' This funciton takes in a dataset, columns of the dataset containging response variable and two independant variables
-#' @export
-#' @param dataset a dataframe containing harvest data
-#' @param response response variable, represented by a column of the dataset
-#' @param x_group1 independant variable, represented by a column of the dataset
-#' @param group2 independant variable, represented by a column of dataset
-#' @return interaction plot where y is response variable, x-axis is mean and standard error of first independant variable,
-#' and colored line conneecting the means of representing second variable accross first independant variable
-#' @example interaction.plot(harvesstData, 'relativeGrowth', 'Species', 'Treatment')
+# Interaction plots between two variables on response
+#
+# This funciton takes in a dataset, columns of the dataset containging response variable and two independant variables
 interaction.plot <- function(dataset, response, x_group1, group2){
   temp.dataset <- dataset[, c(response, x_group1, group2)]
   colnames(temp.dataset) <- c('y', 'x1', 'x2')
@@ -141,4 +103,59 @@ interaction.plot <- function(dataset, response, x_group1, group2){
     stat_summary(fun.y=mean, geom='line', size=2) +
     ggtitle('Interaction Plot') + xlab(as.character(x_group1)) + ylab(as.character(response)) +
     labs(color=as.character(group2))
+}
+
+
+
+# Generic function to automate plot with fill and facet
+#
+# Given a dataset, this will order the response variable (y axis value), order the treatments (x axis factor), fill the bars with color according to given variable, and facet into subplots  
+response.plot <- function(dataset, y, x, fill=NULL, facet=NULL){
+  # Prepare and subset the dataset for data aggregation
+  if (is.null(fill) != T & is.null(facet) == T){
+    temp.dataset <-dataset[, c(y, x, fill)]
+    colnames(temp.dataset) <- c("y", "x1", 'f')
+  } else if (is.null(fill) != T & is.null(facet) != T) {
+    temp.dataset <- dataset[, c(y, x, fill, facet)]
+    colnames(temp.dataset) <- c("y", "x1", 'f', 'sub')
+  } else {
+    temp.dataset <- dataset[, c(y, x)]
+    colnames(temp.dataset) <- c("y", "x1")
+  }
+  
+  # Aggregation by treatment
+  if (is.null(fill) != T & is.null(facet) == T){
+    agg.o <- aggregate(y ~ x1+f, data=temp.dataset, mean)
+  } else if (is.null(fill) != T & is.null(facet) != T) {
+    agg.o <- aggregate(y ~ x1+f+sub, data=temp.dataset, mean)
+  } else {
+    agg.o <- aggregate(y ~ x1, data = temp.dataset, mean, na.rm = T)
+  }
+  
+  agg.se <- aggregate(y ~ x1, data = temp.dataset, se)
+  colnames(agg.se)[2] <- "se"
+  agg <- merge(agg.o, agg.se, by = "x1")
+  
+  
+  # Generate plot
+  if (is.null(fill) != T & is.null(facet) == T){
+    ggplot2::ggplot(agg, aes(x=reorder(x1, -y), y=y, fill=f)) +
+      geom_bar(stat = "identity", position = "dodge", na.rm = T) + 
+      geom_errorbar(aes(ymin = y - se, ymax = y + se), position = position_dodge(width = 0.9), width = 0.2) +
+      xlab(x) + ylab(y) + theme(legend.title = element_blank(), axis.text.x = element_text(angle=90))
+    
+  } else if (is.null(fill) != T & is.null(facet) != T) {
+    ggplot2::ggplot(agg, aes(x=reorder(x1, -y), y=y, fill=f)) +
+      geom_bar(stat = "identity", position = "dodge", na.rm = T) + 
+      geom_errorbar(aes(ymin = y - se, ymax = y + se), position = position_dodge(width = 0.9), width = 0.2) +
+      xlab(x) + ylab(y) + theme(legend.title = element_blank(), axis.text.x = element_text(angle=90)) +
+      facet_grid(~sub, scales='free')
+    
+  } else {
+    ggplot2::ggplot(agg, aes(x=reorder(x1, -y), y=y)) +
+      geom_bar(stat = "identity", position = "dodge", na.rm = T) + 
+      geom_errorbar(aes(ymin = y - se, ymax = y + se), position = position_dodge(width = 0.9), width = 0.2) +
+      xlab(x) + ylab(y) + theme(legend.title = element_blank(), axis.text.x = element_text(angle=90))
+  }
+  
 }
