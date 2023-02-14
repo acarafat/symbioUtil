@@ -145,7 +145,7 @@ response.plot <- function(dataset, y, x, fill=NULL, facet=NULL){
       xlab(x) + ylab(y) + theme(legend.title = element_blank(), axis.text.x = element_text(angle=90))
     
   } else if (is.null(fill) != T & is.null(facet) != T) {
-    ggplot2::ggplot(agg, aes(x=reorder(x1, -y), y=y, fill=f)) +
+    ggplot2::ggplot(agg, aes(x= reorder(reorder(x1, -y), as.numeric(factor(f))), y=y, fill=f)) +
       geom_bar(stat = "identity", position = "dodge", na.rm = T) + 
       geom_errorbar(aes(ymin = y - se, ymax = y + se), position = position_dodge(width = 0.9), width = 0.2) +
       xlab(x) + ylab(y) + theme(legend.title = element_blank(), axis.text.x = element_text(angle=90)) +
